@@ -1,0 +1,12 @@
+<<<<<<< HEAD
+#!/home/jack0_/AVA1/venv/bin/python3
+=======
+#!/home/jack/teacher-productivity-app/venv/bin/python3
+>>>>>>> 90f5ddd1 (Initial commit: Integrated Google Classroom API and report generation)
+# -*- coding: utf-8 -*-
+import re
+import sys
+from flask.cli import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
