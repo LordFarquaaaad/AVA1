@@ -1,49 +1,33 @@
-from flask import request, jsonify
-from app.blueprints.reports import reports_bp
-from app.models import Course, Grade, Assignment
-from .services import generate_student_report
+from flask import Blueprint, request, jsonify
+from app.blueprints.google_classroom.controllers import fetch_student_grades
+from app.blueprints.reports.services import generate_student_report
+from app.extensions import get_google_credentials  # Ensure this function is implemented
+from app.blueprints.reports import reports_bp 
 
 @reports_bp.route("/generate", methods=["POST"])
 def generate_report():
-    data = request.json
-    student_name = data.get("student_name")
-    student_email = data.get("student_email")
-    year_level = data.get("year_level")
+    """Generate a report based on Google Classroom data."""
+    
+    # Assuming credentials are available (In production, store them securely)
+    credentials = get_google_credentials()
 
-    if not student_name or not student_email or not year_level:
-        return jsonify({"error": "Student name, email, and year level are required"}), 400
+    # Fetch student data
+    student_data = fetch_student_grades(credentials)
 
-    # Fetch courses and grades for the student
-    courses = []
-    for course in Course.query.all():
-        assignments = Assignment.query.filter_by(course_id=course.id).all()
-        course_data = {
-            "name": course.name,
-            "average_grade": 0,
-            "assignments": []
-        }
-        total_score = 0
-        total_points = 0
+    reports = {}
 
-        for assignment in assignments:
-            grade = Grade.query.filter_by(assignment_id=assignment.id, student_email=student_email).first()
-            if grade:
-                course_data["assignments"].append({
-                    "title": assignment.title,
-                    "score": grade.score,
-                    "max_points": assignment.max_points
-                })
-                total_score += grade.score
-                total_points += assignment.max_points
+    for student_id, data in student_data.items():
+        student_name = data["name"]
+        courses = data["courses"]
+        
+        # You might need to extract year level separately based on Google Classroom data structure
+        year_level = "Primary"  # Placeholder for now
 
-        if total_points > 0:
-            course_data["average_grade"] = round((total_score / total_points) * 100, 2)
-            courses.append(course_data)
+        # Generate AI-generated report
+        report = generate_student_report(student_name, year_level, courses)
 
-    if not courses:
-        return jsonify({"error": f"No data found for student {student_name}"}), 404
+        reports[student_name] = report
 
-    # Generate the report
-    report = generate_student_report(student_name, year_level, courses)
-    return jsonify({"report": report})
+    return jsonify(reports)
+
 

@@ -1,5 +1,6 @@
 from flask import Blueprint
 
-classroom_bp = Blueprint("classroom", __name__)
+classroom_bp = Blueprint("classroom", __name__, url_prefix="/classroom")
 
-from . import routes  # Import routes
+from . import routes  # ✅ Ensure routes are imported
+

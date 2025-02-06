@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+    <h1>Login Required</h1>
+    <p>To access Google Classroom data, please log in with your Google account.</p>
+    <a href="{{ auth_url }}" class="button">Log in with Google</a>
+{% endblock %}

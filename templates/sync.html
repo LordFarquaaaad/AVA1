@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Sync Classroom Data{% endblock %}
+
+{% block content %}
+    <h2>Sync Google Classroom Data</h2>
+    <p>Click the button below to sync your Google Classroom data with this app.</p>
+
+    <button id="syncButton">Sync Now</button>
+    <p id="status"></p>
+
+    <script>
+        document.getElementById("syncButton").addEventListener("click", function() {
+            document.getElementById("status").innerText = "🔄 Syncing...";
+
+            fetch("/classroom/sync", { method: "GET" })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById("status").innerText = "❌ Error: " + data.error;
+                } else {
+                    document.getElementById("status").innerText = "✅ Sync completed successfully!";
+                }
+            })
+            .catch(error => {
+                document.getElementById("status").innerText = "❌ Failed to sync. Check console.";
+                console.error("Error:", error);
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,9 +1,5 @@
 # This file must be used with "source bin/activate" *from bash*
 # You cannot run it directly
-<<<<<<< HEAD
-export FLASK_APP=app.py
-=======
->>>>>>> 90f5ddd1 (Initial commit: Integrated Google Classroom API and report generation)
 
 deactivate () {
     # reset old environment variables
@@ -43,17 +39,10 @@ deactivate nondestructive
 if [ "${OSTYPE:-}" = "cygwin" ] || [ "${OSTYPE:-}" = "msys" ] ; then
     # transform D:\path\to\venv to /d/path/to/venv on MSYS
     # and to /cygdrive/d/path/to/venv on Cygwin
-<<<<<<< HEAD
-    export VIRTUAL_ENV=$(cygpath /home/jack0_/AVA1/venv)
-else
-    # use the path as-is
-    export VIRTUAL_ENV=/home/jack0_/AVA1/venv
-=======
     export VIRTUAL_ENV=$(cygpath /home/jack/teacher-productivity-app/venv)
 else
     # use the path as-is
     export VIRTUAL_ENV=/home/jack/teacher-productivity-app/venv
->>>>>>> 90f5ddd1 (Initial commit: Integrated Google Classroom API and report generation)
 fi
 
 _OLD_VIRTUAL_PATH="$PATH"

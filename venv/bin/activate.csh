@@ -9,11 +9,7 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-<<<<<<< HEAD
-setenv VIRTUAL_ENV /home/jack0_/AVA1/venv
-=======
 setenv VIRTUAL_ENV /home/jack/teacher-productivity-app/venv
->>>>>>> 90f5ddd1 (Initial commit: Integrated Google Classroom API and report generation)
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/"bin":$PATH"

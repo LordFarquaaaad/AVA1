@@ -33,11 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-<<<<<<< HEAD
-set -gx VIRTUAL_ENV /home/jack0_/AVA1/venv
-=======
 set -gx VIRTUAL_ENV /home/jack/teacher-productivity-app/venv
->>>>>>> 90f5ddd1 (Initial commit: Integrated Google Classroom API and report generation)
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH
