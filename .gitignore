@@ -9,3 +9,9 @@ __pycache__/
 instance/
 *.pyc
 scripts
+config/credentials.json
+config/token.json
+scripts/
+config/credentials.json
+config/token.json
+check_finetune.py
