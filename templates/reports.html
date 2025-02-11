@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Teacher Productivity{% endblock %}
+
+{% block content %}
+    <h2>Generate Student Reports</h2>
+
+    <!-- Generate Report Button -->
+    <button id="generateReportBtn">Generate Report</button>
+
+    <!-- Output Section -->
+    <div id="reportOutput">
+        <h3>Generated Reports:</h3>
+        <pre id="reportContent">Click the button to generate reports...</pre>
+    </div>
+
+    <style>
+        /* Ensure the report box resizes properly and wraps text */
+        #reportContent {
+            white-space: pre-wrap; /* ✅ Wraps long lines */
+            word-wrap: break-word; /* ✅ Ensures text breaks instead of overflowing */
+            max-width: 100%; /* ✅ Prevents text from going off the page */
+            overflow-x: auto; /* ✅ Adds horizontal scrolling if needed */
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-family: monospace;
+        }
+    </style>
+
+    <script>
+        document.getElementById("generateReportBtn").addEventListener("click", function() {
+            document.getElementById("reportContent").textContent = "⏳ Generating reports, please wait...";
+
+            fetch("/reports/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                let formattedReport = "";
+                for (let student in data) {
+                    formattedReport += `📘 Report for ${student}:\n`;
+                    formattedReport += "---------------------------------\n";
+                    formattedReport += `${data[student]}\n\n`;  // Properly formats the response
+                }
+                document.getElementById("reportContent").textContent = formattedReport;
+            })
+            .catch(error => {
+                console.error("❌ Error generating report:", error);
+                document.getElementById("reportContent").textContent = "❌ Error generating report. Please try again.";
+            });
+        });
+    </script>
+{% endblock %}
+
+
+

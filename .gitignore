@@ -1,2 +1,11 @@
+# Node.js / React
+node_modules/
+build/
 .env
-config/credentials.json
+
+# Python / Flask
+venv/
+__pycache__/
+instance/
+*.pyc
+scripts

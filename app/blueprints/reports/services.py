@@ -1,42 +1,76 @@
+import os
 import openai
-from openai import OpenAI
 
-client = OpenAI(api_key="YOUR_OPENAI_API_KEY")  # Make sure to load this securely
+# Load OpenAI API key from environment variable
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-def generate_student_report(student_name, year_level, courses):
-    """Generate an AI-powered student progress report."""
+if not OPENAI_API_KEY:
+    raise ValueError("❌ OPENAI_API_KEY is missing! Set it in the environment.")
 
-    # Convert grades into a descriptive string
-    grades_text = "\n".join([
-        f"{assignment['assignment']}: {assignment['score']} / {assignment['max_points']} in {course}"
-        for course, assignments in courses.items()
-        for assignment in assignments
-    ])
+# ✅ Correct way to create an OpenAI client
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-    # Construct the prompt dynamically based on student year level
-    prompt = f"""
-    You are an AI assistant tasked with writing student progress reports.
-
-    Student Name: {student_name}
-    Year Level: {year_level}
-    
-    Grades:
-    {grades_text}
-
-    Please generate a professional, well-written progress report summarizing the student's performance.
-    Provide encouragement, highlight strengths, and suggest areas for improvement.
+def generate_report_from_user_input(user_input):
     """
-    
-    # Call OpenAI API using the updated method
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are an AI assistant that generates student progress reports."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    
-    return response.choices[0].message.content
+    Generate a report based on freeform teacher input.
+    """
+    try:
+        # Construct the prompt for user input
+        prompt = f"Teacher's comments: {user_input}\n"
+        prompt += "Write a detailed and actionable report based on these comments."
+
+        # ✅ Correct OpenAI API call (NEW SDK SYNTAX)
+        response = client.chat.completions.create(  # FIXED
+            model="ft:gpt-3.5-turbo-0125:shai::AzddwFtj",  # Replace with your fine-tuned model ID
+            messages=[
+                {"role": "system", "content": "You are an expert report generator for student performance."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+
+        # ✅ Extract and return the generated report
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        print(f"❌ Error generating report from user input: {e}")
+        raise
+
+
+def generate_report_from_classroom_data(student_name, year_level, courses):
+    """
+    Generate a report based on structured classroom data.
+    """
+    try:
+        # Construct the prompt for classroom data
+        prompt = f"Student: {student_name}, Year: {year_level}\n"
+        prompt += "Grades:\n"
+        for course, assignments in courses.items():
+            prompt += f"{course}: "
+            prompt += ", ".join([f"{a['assignment']} ({a['score']} / {a['max_points']})" for a in assignments])
+            prompt += "\n"
+        prompt += "\nWrite a detailed academic performance report with constructive feedback and improvement suggestions."
+
+        # ✅ Correct OpenAI API call (NEW SDK SYNTAX)
+        response = client.chat.completions.create(  # FIXED
+            model="ft:gpt-3.5-turbo-0125:shai::Az138VuK",  # Replace with your fine-tuned model ID
+            messages=[
+                {"role": "system", "content": "You are an expert academic performance report generator."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+
+        # ✅ Extract and return the generated report
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        print(f"❌ Error generating report from classroom data: {e}")
+        raise
+
+
 
 
 

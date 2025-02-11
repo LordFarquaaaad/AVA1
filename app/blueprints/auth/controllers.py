@@ -2,10 +2,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 import os
 
 SCOPES = [
-    "https://www.googleapis.com/auth/classroom.courses.readonly",
-    "https://www.googleapis.com/auth/classroom.coursework.me",
-    "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly"
+    "https://www.googleapis.com/auth/classroom.courses.readonly",               # View courses
+    "https://www.googleapis.com/auth/classroom.coursework.students.readonly",   # View coursework for students
+    "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly"  # View all student submissions
 ]
+
 
 def authenticate_google():
     """Authenticate Google API with explicit redirect URI."""

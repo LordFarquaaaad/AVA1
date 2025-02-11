@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify
 from app.extensions import get_google_credentials
-from app.blueprints.google_classroom.controllers import fetch_classroom_data
+from app.blueprints.google_classroom.controllers import sync_classroom_data
 from app.blueprints.google_classroom import classroom_bp
 
 @classroom_bp.route("/sync-page", methods=["GET"])
@@ -20,7 +20,7 @@ def sync_classroom():
             return jsonify({"error": "Google authentication required. Please log in."}), 401
 
         print("✅ Credentials verified. Fetching classroom data...")
-        response = fetch_classroom_data(credentials)
+        response = sync_classroom_data(credentials)
         return jsonify(response)
 
     except Exception as e:

@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, url_for, request, render_template
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from app.blueprints.auth import auth_bp
-from app.blueprints.google_classroom.controllers import fetch_classroom_data
+from app.blueprints.google_classroom.controllers import sync_classroom_data
 import json
 import os
 
@@ -12,10 +12,20 @@ TOKEN_PATH = "config/token.json"  # Ensure this is consistent across the app
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 SCOPES = [
-    "https://www.googleapis.com/auth/classroom.courses.readonly",
-    "https://www.googleapis.com/auth/classroom.coursework.me",
-    "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly"
+    "https://www.googleapis.com/auth/classroom.courses.readonly",  # View courses (classes)
+    "https://www.googleapis.com/auth/classroom.coursework.students",  # Manage coursework & grades for students
+    "https://www.googleapis.com/auth/classroom.courseworkmaterials",  # View, edit, and create classwork materials
+    "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",  # View coursework & grades for students
+    "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",  # View YOUR coursework & grades
+    "https://www.googleapis.com/auth/classroom.coursework.me",  # Create/edit coursework (assignments, grades)
+    "https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly"  # View all classwork materials
 ]
+
+
+
+
+
+
 
 
 @auth_bp.route("/login")
