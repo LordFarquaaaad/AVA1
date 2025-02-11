@@ -15,3 +15,6 @@ scripts/
 config/credentials.json
 config/token.json
 check_finetune.py
+config/credentials.json
+config/token.json
+check_finetune.py
