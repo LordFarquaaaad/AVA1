@@ -18,3 +18,5 @@ check_finetune.py
 config/credentials.json
 config/token.json
 check_finetune.py
+backend/config/credentials.json
+backend/config/token.json
