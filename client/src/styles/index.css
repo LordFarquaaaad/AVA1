@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🌿 Cozy, Home-Like Background */
+body {
+  @apply bg-gradient-to-r from-[#f5ebe0] to-[#e3d5ca] text-[#3e3e3e] font-serif;
+}
+

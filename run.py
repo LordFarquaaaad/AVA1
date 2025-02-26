@@ -1,5 +1,5 @@
-from backend import create_app, db
-import os
+# -*- coding: utf-8 -*-
+from backend import create_app
 
 app = create_app()
 

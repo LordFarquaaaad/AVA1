@@ -1,10 +1,16 @@
-const Dashboard = () => {
+import React from "react";
+import { useAuth } from "../context/AuthContext"; // Use useAuth instead of AuthContext
+
+function Dashboard() {
+  const { user } = useAuth(); // Use the useAuth hook
+
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold">Welcome to your AI Dashboard</h1>
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {user ? user.username : "Guest"}!</p>
     </div>
   );
-};
+}
 
 export default Dashboard;
 
