@@ -1,73 +1,98 @@
-import React, { useState } from "react";
+// src/components/LoginPage.js
+import React, { useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Button, TextField, Container, Typography, Box, CircularProgress } from "@mui/material";
+import { useTheme } from "../context/theme/ThemeContext";
+import { useNavigate } from "react-router-dom";
 
-function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-
-  const { user, loading, login } = useAuth(); // Use loading state
+const LoginPage = () => {
+  const [credentials, setCredentials] = useState({ identifier: "", password: "" });
+  const { login, loading, error } = useAuth();
+  const { theme, themes } = useTheme();
   const navigate = useNavigate();
-  const location = useLocation();
+  const currentTheme = theme && Object.keys(themes).includes(theme) ? theme : "scholar";
 
-  const fromPath = location.state?.from?.pathname || "/dashboard";
+  const handleChange = useCallback((e) => {
+    setCredentials((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-
-    try {
-      await login(username, password);
-      navigate(fromPath, { replace: true });
-    } catch (err) {
-      console.error("Login failed:", err);
-      setError(err.message || "Invalid username or password.");
-    }
-  };
-
-  // If already logged in, redirect to the dashboard
-  if (user) {
-    navigate(fromPath, { replace: true });
-  }
-
-  // Show loading spinner while checking authentication
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (loading) return; // Prevent multiple submissions while loading
+      try {
+        await login(credentials.identifier, credentials.password);
+        const next = new URLSearchParams(window.location.search).get("next") || "/dashboard";
+        navigate(next);
+      } catch (err) {
+        console.error("Login error:", err);
+        setCredentials((prev) => ({ ...prev, password: "" })); // Clear password on failure
+      }
+    },
+    [credentials, login, navigate, loading]
+  );
 
   return (
-    <div style={{ maxWidth: "400px", margin: "0 auto", padding: "20px", textAlign: "center" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
+    <Container maxWidth="sm" sx={{ mt: 8 }}>
+      <Box sx={{ bgcolor: themes[currentTheme].cardColor, p: 4, borderRadius: 2, boxShadow: 1 }}>
+        <Typography variant="h4" gutterBottom sx={{ color: themes[currentTheme].text }}>
+          Login
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Identifier (Username or Email)"
+            name="identifier"
+            value={credentials.identifier}
+            onChange={handleChange}
+            margin="normal"
+            variant="outlined"
+            autoComplete="username"
+            sx={{
+              backgroundColor: themes[currentTheme].lighterCardColor,
+              "& .MuiInputBase-input": { color: themes[currentTheme].text },
+              "& .MuiInputLabel-root": { color: themes[currentTheme].text },
+            }}
           />
-        </div>
-        <div style={{ marginTop: 10 }}>
-          <label>Password</label>
-          <input
+          <TextField
+            fullWidth
+            label="Password"
+            name="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            value={credentials.password}
+            onChange={handleChange}
+            margin="normal"
+            variant="outlined"
+            autoComplete="current-password"
+            sx={{
+              backgroundColor: themes[currentTheme].lighterCardColor,
+              "& .MuiInputBase-input": { color: themes[currentTheme].text },
+              "& .MuiInputLabel-root": { color: themes[currentTheme].text },
+            }}
           />
-        </div>
-        <button style={{ marginTop: 10 }} type="submit">
-          Log In
-        </button>
-        {error && <p style={{ color: "red", marginTop: 10 }}>{error}</p>}
-      </form>
-    </div>
+          {loading && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <CircularProgress sx={{ color: themes[currentTheme].text }} />
+            </Box>
+          )}
+          {error && (
+            <Typography color="error" sx={{ mt: 2 }}>
+              {error}
+            </Typography>
+          )}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={loading}
+            sx={{ mt: 2, ...themes[currentTheme].button }}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </Button>
+        </form>
+      </Box>
+    </Container>
   );
-}
+};
 
 export default LoginPage;
-
-
-

@@ -1,12 +1,14 @@
 from google_auth_oauthlib.flow import InstalledAppFlow
 import os
+from functools import wraps
+from flask import request, jsonify, g
+from backend.models.user import User  # Adjust import based on your structure
 
 SCOPES = [
     "https://www.googleapis.com/auth/classroom.courses.readonly",               # View courses
     "https://www.googleapis.com/auth/classroom.coursework.students.readonly",   # View coursework for students
     "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly"  # View all student submissions
 ]
-
 
 def authenticate_google():
     """Authenticate Google API with explicit redirect URI."""
@@ -25,7 +27,3 @@ def authenticate_google():
 
     print("✅ Authentication successful!")
     return credentials
-
-
-
-

@@ -1,11 +1,11 @@
 import os
 import openai
-
+import warnings
 # Load OpenAI API key from environment variable
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not OPENAI_API_KEY:
-    raise ValueError("❌ OPENAI_API_KEY is missing! Set it in the environment.")
+    warnings.warn("⚠️ OPENAI_API_KEY is missing! Some AI features may not work.", RuntimeWarning)
 
 # ✅ Correct way to create an OpenAI client
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
@@ -70,8 +70,6 @@ Now, write a well-structured, professional report.
     except Exception as e:
         print(f"❌ AI Generation Error: {e}")
         return "⚠️ Error generating AI-enhanced report."
-
-
 
 def generate_bulk_reports(students):
     """Reuses generate_student_report() to generate reports for multiple students."""
@@ -152,5 +150,3 @@ def suggest_ai_comments(student_name, subject):
         return response.choices[0].message.content
     except Exception as e:
         return f"Error generating comments: {str(e)}"
-
-

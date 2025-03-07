@@ -7,8 +7,9 @@ from backend.models.grade import Grade
 from backend.models.students import Student
 from backend.models.studentsubmission import StudentSubmission
 from backend.models.user import User
+from backend.models.template import Template  # Add Template import
 
 # Ensure all models are available when importing `backend.models`
-__all__ = ["Course", "Assignment", "Grade", "Student", "StudentSubmission", "User"]
+__all__ = ["Course", "Assignment", "Grade", "Student", "StudentSubmission", "User", "Template"]  # Add Template to __all__
 
 

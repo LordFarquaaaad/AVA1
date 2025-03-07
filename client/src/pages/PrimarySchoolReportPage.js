@@ -9,6 +9,7 @@ const PrimarySchoolReportPage = () => {
   const {
     students,
     report,
+    templates,
     loading,
     error,
     handleStudentChange,
@@ -18,7 +19,7 @@ const PrimarySchoolReportPage = () => {
     handleGenerateReport,
   } = useReportGenerator(primaryCategories);
 
-  console.log("📢 Report in PrimarySchoolReportPage.js:", JSON.stringify(report, null, 2)); // Debugging log
+  console.log("✅ PrimarySchoolReportPage rendered", { students, report, loading, error });
 
   return (
     <Paper elevation={3} sx={{ padding: "16px", margin: "16px" }}>
@@ -37,7 +38,12 @@ const PrimarySchoolReportPage = () => {
         />
       ))}
 
-      <Button variant="contained" color="primary" onClick={addStudent} sx={{ marginTop: "16px", marginRight: "16px" }}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={addStudent}
+        sx={{ marginTop: "16px", marginRight: "16px" }}
+      >
         ➕ Add Student
       </Button>
 
@@ -58,12 +64,18 @@ const PrimarySchoolReportPage = () => {
           <Typography variant="h6">Generated Reports:</Typography>
           {report.map((studentReport, index) => (
             <div key={index} style={{ marginTop: "8px" }}>
-              <Typography variant="subtitle1">{studentReport.name || `Student ${index + 1}`}</Typography>
+              <Typography variant="subtitle1">
+                {studentReport.name || `Student ${index + 1}`}
+              </Typography>
               <p>{studentReport.report || "No report text available"}</p>
             </div>
           ))}
         </div>
       )}
+
+      <Typography variant="subtitle1" sx={{ marginTop: "16px" }}>
+        Saved Templates: {templates.length}
+      </Typography>
     </Paper>
   );
 };

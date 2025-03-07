@@ -1,14 +1,16 @@
+# backend/models/user.py
+# backend/models/user.py
 from backend.extensions import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = "user"  # Matches renamed table
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)  # Optional but recommended
-    password_hash = db.Column(db.String(256), nullable=False)  # Store hashed passwords
+    password_hash = db.Column(db.String(256), nullable=False)  # Use "password_hash" to match database
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 

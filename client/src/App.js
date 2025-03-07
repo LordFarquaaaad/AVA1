@@ -1,14 +1,25 @@
+// src/App.js
 import React, { Suspense } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ReportProvider } from "./context/ReportContext";
-import { routes } from "./constants/routes"; // Import centralized routes
-import LoadingSpinner from "./components/common/LoadingSpinner"; // Reusable loading spinner
-import PrivateRoute from "./components/PrivateRoute"; // Private route component
-import Sidebar from "./components/layout/Sidebar"; // Sidebar component
-import Header from "./components/layout/Header"; // Header component
-import LoginPage from "./pages/LoginPage"; // Import LoginPage
+import LoadingSpinner from "./components/common/LoadingSpinner";
+import { routes } from "./constants/routes";
+
+// 🔹 Top-Level Error Boundary
+function AppErrorBoundary({ children }) {
+  return (
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onReset={() => {
+        window.location.reload(); // Reset by reloading the page
+      }}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
 
 // 🔹 Error Fallback Component
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -23,54 +34,81 @@ function ErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
-// 🔹 MainLayout - Structure with Sidebar, Header & Content
-function MainLayout() {
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-grow flex flex-col overflow-auto">
-        <Header />
-        <div className="p-6">
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
-                {routes.map((route) => (
-                  <Route
-                    key={route.path}
-                    path={route.path}
-                    element={
-                      route.protected ? (
-                        <PrivateRoute>{route.element}</PrivateRoute>
-                      ) : (
-                        route.element
-                      )
-                    }
-                  />
-                ))}
-              </Routes>
-            </Suspense>
-          </ErrorBoundary>
-        </div>
-      </div>
-    </div>
-  );
+// 🔹 **PrivateRoute Component**
+function PrivateRoute({ isProtected, children }) {
+  const { user, loading } = useAuth();
+
+  // Show loading spinner while authentication status is being checked
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  // Redirect unauthenticated users from protected routes to the login page
+  if (isProtected && !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Redirect authenticated users away from non-protected routes (e.g., login page)
+  if (!isProtected && user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Render children if authenticated or if the route is not protected
+  return children;
 }
 
-// 🔹 App Component - Wrap with Providers
+// 🔹 **App Component**
 function App() {
   return (
-    <AuthProvider>
-      <ReportProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <ReportProvider>
           <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} /> {/* Use LoginPage here */}
-              <Route path="*" element={<MainLayout />} />
-            </Routes>
+            <AppErrorBoundary>
+              <Routes>
+                {/* Map over the routes configuration */}
+                {routes.map((route, index) => {
+                  const { path, element, protected: isProtected, children } = route;
+
+                  return (
+                    <Route
+                      key={index}
+                      path={path}
+                      element={
+                        isProtected ? (
+                          <PrivateRoute isProtected={isProtected}>
+                            {element}
+                          </PrivateRoute>
+                        ) : (
+                          element
+                        )
+                      }
+                    >
+                      {/* Render nested routes */}
+                      {children &&
+                        children.map((child, childIndex) => {
+                          const { path: childPath, element: childElement } = child;
+                          return (
+                            <Route
+                              key={childIndex}
+                              path={childPath}
+                              element={
+                                <PrivateRoute isProtected={isProtected}>
+                                  {childElement}
+                                </PrivateRoute>
+                              }
+                            />
+                          );
+                        })}
+                    </Route>
+                  );
+                })}
+              </Routes>
+            </AppErrorBoundary>
           </Suspense>
-        </Router>
-      </ReportProvider>
-    </AuthProvider>
+        </ReportProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

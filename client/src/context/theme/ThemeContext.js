@@ -1,42 +1,50 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-// Available themes
+// Available themes optimized for teachers
 const themes = {
-  cozy: {
-    bg: "bg-[#f5ebe0]", // Warm beige background
-    text: "text-[#3e3e3e]",
-    sidebar: "bg-[#d8c3a5] text-[#5e4937]",
-    cardColor: "#f8f4e1", // ✅ Normal card color for components
-    lighterCardColor: "#faf3e7", // ✅ Slightly lighter than the main card
-    button: "bg-[#8b5e3b] text-white hover:bg-[#a97c50]"
+  scholar: {
+    bg: "bg-[#f9fafb]", // Light, clean off-white background for a professional look
+    text: "text-[#333333]", // Dark gray for readability
+    sidebar: "bg-[#e5e7eb] text-[#333333]", // Light gray sidebar with dark text for contrast
+    cardColor: "#ffffff", // Pure white cards for a crisp, professional appearance
+    lighterCardColor: "#f3f4f6", // Slightly off-white for subtle contrast in cards
+    button: "bg-[#4a90e2] text-white hover:bg-[#357ab8]", // Professional blue button, easy on the eyes
+    errorColor: "#e74c3c", // Red for errors, visible but not overwhelming
+    successColor: "#2ecc71", // Green for success messages, teacher-friendly
   },
-  candlelight: {
-    bg: "bg-[#2c2a2a]", // Dimmed warm dark
-    text: "text-[#e8cba4]",
-    sidebar: "bg-[#3e322c] text-[#e8cba4]",
-    cardColor: "#44372e", // ✅ Normal card background
-    lighterCardColor: "#57483e", // ✅ Lighter than the background
-    button: "bg-[#a97c50] text-white hover:bg-[#8b5e3b]"
+  sage: {
+    bg: "bg-[#f0f7f4]", // Soft mint green background, calm and earthy
+    text: "text-[#2c3e50]", // Dark navy for readability
+    sidebar: "bg-[#d1e7dd] text-[#2c3e50]", // Light green sidebar with dark text
+    cardColor: "#ffffff", // White cards for contrast
+    lighterCardColor: "#e8f5e9", // Very light green for subtle card highlight
+    button: "bg-[#27ae60] text-white hover:bg-[#219653]", // Earthy green button, teacher-friendly
+    errorColor: "#e74c3c", // Red for errors
+    successColor: "#2ecc71", // Green for success
   },
-  dark: {
-    bg: "bg-[#1a1a1a]", // Dark theme
-    text: "text-[#f5f5f5]",
-    sidebar: "bg-[#2a2a2a] text-[#f5f5f5]",
-    cardColor: "#333", // ✅ Normal card color
-    lighterCardColor: "#444", // ✅ Slightly lighter for contrast
-    button: "bg-[#444] text-white hover:bg-[#666]"
-  }
+  slate: {
+    bg: "bg-[#f5f7fa]", // Light gray-blue background, modern and minimal
+    text: "text-[#2c3e50]", // Dark navy for readability
+    sidebar: "bg-[#e2e8f0] text-[#2c3e50]", // Medium gray sidebar with dark text
+    cardColor: "#ffffff", // White cards for clarity
+    lighterCardColor: "#edf2f7", // Very light gray for card highlight
+    button: "bg-[#4682b4] text-white hover:bg-[#3a6ea0]", // Steel blue button, professional and modern
+    errorColor: "#e74c3c", // Red for errors
+    successColor: "#2ecc71", // Green for success
+  },
 };
 
 // Context setup
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "cozy");
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "scholar"); // Default to 'scholar' for professional look
 
   // Apply theme changes and save to localStorage
   useEffect(() => {
     localStorage.setItem("theme", theme);
+    // Optionally update the document class for global CSS application
+    document.documentElement.className = `theme-${theme}`;
   }, [theme]);
 
   return (

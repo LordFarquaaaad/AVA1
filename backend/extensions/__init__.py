@@ -11,8 +11,6 @@ from flask_cors import CORS
 cors = CORS()
 db = SQLAlchemy()
 migrate = Migrate()
-login_manager = LoginManager()
-login_manager.login_view = "auth.login" # Redirect users who aren’t logged in
 
 # Token and credentials file paths
 TOKEN_PATH = "config/token.json"
@@ -20,11 +18,6 @@ CREDENTIALS_PATH = "config/credentials.json"
 
 # OAuth instance
 oauth = OAuth()
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))  # Fetch user by ID
-
 
 def init_oauth(app):
     """Initialize OAuth for Google authentication."""

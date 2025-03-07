@@ -1,12 +1,21 @@
 from flask import Blueprint, request, jsonify, render_template
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from backend.blueprints.google_classroom.controllers import sync_classroom_data
 from backend.blueprints.reports.services import generate_report_from_user_input, generate_report_from_classroom_data, suggest_ai_comments, generate_bulk_reports, generate_student_report
-from backend.extensions import get_google_credentials  # Ensure this function is implemented
-from backend.blueprints.reports import reports_bp  
-from backend.models import StudentSubmission, Assignment, Course
+from backend.extensions import get_google_credentials
+from backend.models import StudentSubmission, Assignment, Course, Template
+from datetime import datetime
+from backend.blueprints.reports import reports_bp
 
-@reports_bp.route("/generate", methods=["POST"])
+# Report Generation Endpoints
+
+@reports_bp.route("/reports/generate", methods=["POST"])
+@jwt_required()
 def generate_report():
+    """
+    Generate reports for students using AI, optionally using custom templates.
+    Request Body: {students: [{name, schoolLevel, categories, templateId}]}
+    """
     try:
         data = request.get_json()
         print(f"📥 Received Data: {data}")  # Log incoming request
@@ -14,10 +23,23 @@ def generate_report():
         if not data or "students" not in data:
             return jsonify({"error": "Invalid request, 'students' key missing"}), 400
 
+        # Get user ID from JWT
+        user_id = get_jwt_identity()
+        jwt_data = get_jwt()
+        username = jwt_data.get("username")  # Assuming username is in additional claims
+
         reports = []
         for student in data["students"]:
             name = student.get("name", "Unnamed Student")
+            schoolLevel = student.get("schoolLevel", "Primary School")
             categories = student.get("categories", {})
+
+            # Optionally load and apply a template (e.g., based on templateId in studentsData)
+            template_id = student.get("templateId")  # Add this to studentsData if using a template
+            if template_id:
+                template = Template.query.get(template_id)
+                if template and template.teacher_id == int(user_id):  # Use user_id from JWT
+                    categories = {**categories, **template.categories}  # Merge template categories
 
             # Validate categories data
             if not isinstance(categories, dict):
@@ -42,7 +64,8 @@ def generate_report():
         print(f"❌ Error generating reports: {e}")
         return jsonify({"error": "Failed to generate reports"}), 500
 
-@reports_bp.route("/generate-bulk", methods=["POST"])
+@reports_bp.route("/reports/generate-bulk", methods=["POST"])
+@jwt_required()
 def generate_bulk():
     """API route to generate multiple student reports in bulk using the same function."""
     try:
@@ -54,6 +77,9 @@ def generate_bulk():
         if not students:
             return jsonify({"error": "No students provided."}), 400
 
+        # Get user ID from JWT (not used directly here but included for consistency)
+        user_id = get_jwt_identity()
+
         reports = generate_bulk_reports(students)
         return jsonify({"reports": reports})
 
@@ -62,15 +88,24 @@ def generate_bulk():
         return jsonify({"error": f"An error occurred while generating reports: {str(e)}"}), 500
 
 @reports_bp.route("/")
+@jwt_required()
 def view_reports():
     """Render the reports page."""
-    return render_template("reports.html")
+    # Since this is a GET route rendering a template, we might not need JWT for rendering
+    # but we'll keep it for authentication. Adjust frontend to handle token if needed.
+    jwt_data = get_jwt()
+    username = jwt_data.get("username")  # Assuming username is in additional claims
+    return render_template("reports.html", username=username)
 
-@reports_bp.route("/generate/google/classroom", methods=["POST"])
+@reports_bp.route("/reports/generate/google/classroom", methods=["POST"])
+@jwt_required()
 def generate_report_classroom_1():
     """Generate a report based on Google Classroom data stored in the database."""
     try:
         print("🔍 Starting report generation...")
+
+        # Get user ID from JWT
+        user_id = get_jwt_identity()
 
         # Step 1: Retrieve credentials
         credentials = get_google_credentials()
@@ -144,7 +179,8 @@ def generate_report_classroom_1():
         print(f"❌ Unexpected error in generate_report: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-@reports_bp.route("/generate-from-input", methods=["POST"])
+@reports_bp.route("/reports/generate-from-input", methods=["POST"])
+@jwt_required()
 def generate_report_from_input():
     """
     Generate a report based on freeform user input (React).
@@ -154,6 +190,7 @@ def generate_report_from_input():
         if not data or "input" not in data:
             return jsonify({"error": "Invalid input. Please provide input data."}), 400
 
+        user_id = get_jwt_identity()  # Not used directly but included for consistency
         user_input = data["input"]
         print(f"🔍 Received input: {user_input}")
 
@@ -166,7 +203,8 @@ def generate_report_from_input():
         print(f"❌ Error generating report from input: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-@reports_bp.route("/generate-from-classroom", methods=["POST"])
+@reports_bp.route("/reports/generate-from-classroom", methods=["POST"])
+@jwt_required()
 def generate_report_from_classroom():
     """
     Generate a report based on structured classroom data.
@@ -176,6 +214,7 @@ def generate_report_from_classroom():
         if not data or "student_name" not in data or "year_level" not in data or "courses" not in data:
             return jsonify({"error": "Invalid input. Please provide student_name, year_level, and courses."}), 400
 
+        user_id = get_jwt_identity()  # Not used directly but included for consistency
         student_name = data["student_name"]
         year_level = data["year_level"]
         courses = data["courses"]
@@ -190,12 +229,110 @@ def generate_report_from_classroom():
         print(f"❌ Error generating report from classroom data: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-@reports_bp.route("/suggest-comments", methods=["POST"])
+@reports_bp.route("/reports/suggest-comments", methods=["POST"])
+@jwt_required()
 def suggest_comments():
+    """
+    Suggest AI-generated comments for a student and subject.
+    Request Body: {studentName, subject}
+    """
     data = request.json
+    user_id = get_jwt_identity()  # Not used directly but included for consistency
     student_name = data.get("studentName", "The student")
     subject = data.get("subject", "the subject")
 
     ai_comment = suggest_ai_comments(student_name, subject)
     return jsonify({"suggestedComments": ai_comment})
+
+# Template Management Endpoints
+@reports_bp.route("/templates", methods=["POST"])
+@jwt_required()
+def create_template():
+    """
+    Create a new custom report template for the authenticated teacher.
+    Request Body: {name, categories, schoolLevel}
+    """
+    try:
+        data = request.get_json()
+        user_id = get_jwt_identity()
+        name = data.get("name")
+        categories = data.get("categories", [])
+        schoolLevel = data.get("schoolLevel", "Primary School")
+
+        if not name or not categories:
+            return jsonify({"error": "Template name and categories are required"}), 400
+
+        template = Template(
+            name=name,
+            categories=categories,
+            schoolLevel=schoolLevel,
+            teacher_id=int(user_id),  # Use user_id from JWT
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        template.save()
+
+        return jsonify(template.to_json()), 201
+    except Exception as e:
+        print(f"❌ Error creating template: {e}")
+        return jsonify({"error": "Failed to create template"}), 500
+
+@reports_bp.route("/templates", methods=["GET"])
+@jwt_required()
+def get_templates():
+    """
+    Retrieve all templates for the authenticated teacher, filtered by schoolLevel.
+    Query Param: schoolLevel (optional, defaults to "Primary School")
+    """
+    try:
+        user_id = get_jwt_identity()
+        schoolLevel = request.args.get("schoolLevel", "Primary School")
+        templates = Template.query.filter_by(teacher_id=int(user_id), schoolLevel=schoolLevel).all()
+        return jsonify([t.to_json() for t in templates]), 200
+    except Exception as e:
+        print(f"❌ Error fetching templates: {e}")
+        return jsonify({"error": "Failed to fetch templates"}), 500
+
+@reports_bp.route("/templates/<int:template_id>", methods=["PUT"])
+@jwt_required()
+def update_template(template_id):
+    """
+    Update an existing template for the authenticated teacher.
+    Request Body: {name, categories, schoolLevel}
+    """
+    try:
+        data = request.get_json()
+        user_id = get_jwt_identity()
+        template = Template.query.get_or_404(template_id)
+        if template.teacher_id != int(user_id):  # Use user_id from JWT
+            return jsonify({"error": "Unauthorized"}), 403
+
+        template.name = data.get("name", template.name)
+        template.categories = data.get("categories", template.categories)
+        template.schoolLevel = data.get("schoolLevel", template.schoolLevel)
+        template.updated_at = datetime.utcnow()
+        template.save()
+
+        return jsonify(template.to_json()), 200
+    except Exception as e:
+        print(f"❌ Error updating template: {e}")
+        return jsonify({"error": "Failed to update template"}), 500
+
+@reports_bp.route("/templates/<int:template_id>", methods=["DELETE"])
+@jwt_required()
+def delete_template(template_id):
+    """
+    Delete a template for the authenticated teacher.
+    """
+    try:
+        user_id = get_jwt_identity()
+        template = Template.query.get_or_404(template_id)
+        if template.teacher_id != int(user_id):  # Use user_id from JWT
+            return jsonify({"error": "Unauthorized"}), 403
+
+        template.delete()
+        return "", 204
+    except Exception as e:
+        print(f"❌ Error deleting template: {e}")
+        return jsonify({"error": "Failed to delete template"}), 500
 
